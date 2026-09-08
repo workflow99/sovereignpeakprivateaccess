@@ -1,0 +1,25 @@
+rules_version = '2';
+
+// This app uses its own custom email/password auth stored in Firestore
+// (not Firebase Authentication), so there is no `request.auth` to check
+// here — access control lives entirely in the client, the same trust
+// model the app already had when everything was in localStorage. These
+// rules just scope reads/writes to the three collections/doc this app
+// actually uses, rather than leaving the whole database open.
+//
+// If this app ever needs real server-side authorization (e.g. "a user can
+// only write their own dashboard"), migrate to Firebase Authentication and
+// key these rules off request.auth.uid instead.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    match /dashboards/{userId} {
+      allow read, write: if true;
+    }
+    match /meta/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
