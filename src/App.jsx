@@ -38,7 +38,7 @@ function RouteTransitionLoader() {
     if (prevPathRef.current === location.pathname) return;
     prevPathRef.current = location.pathname;
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 900);
+    const timer = setTimeout(() => setLoading(false), 180);
     return () => clearTimeout(timer);
   }, [location.pathname]);
 

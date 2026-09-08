@@ -40,19 +40,39 @@ export default function CursorTrail() {
   const mouseY = useMotionValue(-100);
 
   useEffect(() => {
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-
-    const handleMove = (e) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+    const isCoarse = window.matchMedia("(pointer: coarse)").matches;
+    const updatePosition = (clientX, clientY) => {
+      mouseX.set(clientX);
+      mouseY.set(clientY);
     };
+
+    const handleMove = (e) => updatePosition(e.clientX, e.clientY);
+    const handleTouchMove = (e) => {
+      const touch = e.touches?.[0];
+      if (!touch) return;
+      updatePosition(touch.clientX, touch.clientY);
+    };
+    const handleScroll = () => {
+      if (!isCoarse) return;
+      updatePosition(window.innerWidth / 2, window.innerHeight * 0.35 + window.scrollY * 0.5);
+    };
+
     window.addEventListener("pointermove", handleMove);
-    return () => window.removeEventListener("pointermove", handleMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [mouseX, mouseY]);
 
+  const displayDots = window.matchMedia("(pointer: coarse)").matches ? DOTS.slice(0, 2) : DOTS;
+
   return (
-    <div className="pointer-events-none fixed inset-0 z-[70] hidden sm:block">
-      {DOTS.map((dot, i) => (
+    <div className="pointer-events-none fixed inset-0 z-[70] block">
+      {displayDots.map((dot, i) => (
         <TrailDot key={i} mouseX={mouseX} mouseY={mouseY} {...dot} />
       ))}
     </div>

@@ -37,10 +37,12 @@ function Particles({ count = 22 }) {
 
 export default function BackgroundFX() {
   const spotlightRef = useRef(null);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const particleCount = window.matchMedia("(max-width: 768px)").matches ? 10 : 22;
 
   useEffect(() => {
     const el = spotlightRef.current;
-    if (!el) return;
+    if (!el || reducedMotion) return;
     let raf = null;
     const handleMove = (e) => {
       if (raf) return;
@@ -55,7 +57,7 @@ export default function BackgroundFX() {
       window.removeEventListener("pointermove", handleMove);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, []);
+  }, [reducedMotion]);
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -76,7 +78,7 @@ export default function BackgroundFX() {
         style={{ background: "radial-gradient(circle, rgba(177,18,38,0.25), transparent 70%)" }}
       />
 
-      <Particles />
+      <Particles count={particleCount} />
 
       <div ref={spotlightRef} className="cursor-spotlight absolute inset-0 hidden md:block" />
 

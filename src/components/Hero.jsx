@@ -16,6 +16,9 @@ const fadeUp = {
 
 export default function Hero() {
   const sectionRef = useRef(null);
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches;
+  const shouldReduceMotion =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const mx = useMotionValue(0);
   const mouseSpring = { stiffness: 60, damping: 20, mass: 0.6 };
@@ -68,6 +71,7 @@ export default function Hero() {
             animate="show"
             custom={0.06}
             className="mt-5 inline-block"
+            style={shouldReduceMotion || isMobile ? { opacity: 1 } : undefined}
           >
             <span
               className="text-xs font-black uppercase tracking-[0.3em] text-[#EF4444] sm:text-sm"
@@ -133,6 +137,7 @@ export default function Hero() {
                     loop
                     muted
                     playsInline
+                    preload={isMobile ? "metadata" : "auto"}
                     className="h-full w-full object-cover"
                   />
                 </div>

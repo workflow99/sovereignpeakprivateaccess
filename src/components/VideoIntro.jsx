@@ -35,6 +35,9 @@ function CurlyArrow(props) {
 
 export default function VideoIntro() {
   const positive = portfolioSummary.monthlyChangePercent >= 0;
+  const isMobile = typeof window !== "undefined" && window.matchMedia("(max-width: 768px)").matches;
+  const shouldReduceMotion =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return (
     <section
@@ -48,12 +51,17 @@ export default function VideoIntro() {
         loop
         muted
         playsInline
-        preload="metadata"
+        preload={isMobile ? "metadata" : "auto"}
         initial={{ opacity: 0, scale: 1.06 }}
-        animate={{ opacity: 1, scale: [1.06, 1.14] }}
+        animate={{
+          opacity: 1,
+          scale: shouldReduceMotion || isMobile ? 1.02 : [1.06, 1.14],
+        }}
         transition={{
           opacity: { duration: 1.8, ease: "easeOut" },
-          scale: { duration: 22, ease: "linear", repeat: Infinity, repeatType: "reverse" },
+          scale: shouldReduceMotion || isMobile
+            ? { duration: 0.01 }
+            : { duration: 22, ease: "linear", repeat: Infinity, repeatType: "reverse" },
         }}
         className="absolute inset-0 h-full w-full object-cover"
       />

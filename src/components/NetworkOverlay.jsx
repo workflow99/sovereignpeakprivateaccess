@@ -7,11 +7,14 @@ export default function NetworkOverlay({ className = "" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     let width = 0;
     let height = 0;
     let raf;
+    const nodeCount = isMobile ? 14 : 34;
+    const linkDist = isMobile ? 110 : 150;
 
     const resize = () => {
       const rect = canvas.parentElement.getBoundingClientRect();
@@ -23,7 +26,7 @@ export default function NetworkOverlay({ className = "" }) {
     resize();
     window.addEventListener("resize", resize);
 
-    const nodes = Array.from({ length: NODE_COUNT }, () => ({
+    const nodes = Array.from({ length: nodeCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
       vx: (Math.random() - 0.5) * 0.18,
@@ -50,8 +53,8 @@ export default function NetworkOverlay({ className = "" }) {
           const dx = a.x - b.x;
           const dy = a.y - b.y;
           const dist = Math.hypot(dx, dy);
-          if (dist < LINK_DIST) {
-            const alpha = (1 - dist / LINK_DIST) * 0.35;
+          if (dist < linkDist) {
+            const alpha = (1 - dist / linkDist) * 0.35;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
             ctx.lineTo(b.x, b.y);
