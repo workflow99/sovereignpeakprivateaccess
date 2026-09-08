@@ -95,6 +95,7 @@ html {
   scroll-behavior: smooth;
   background: var(--color-bg-primary);
   color-scheme: dark;
+  touch-action: pan-y;
 }
 
 body {
@@ -103,6 +104,8 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 ::selection {
