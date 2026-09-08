@@ -27,12 +27,13 @@ export default function AdminGuard() {
   const [authed, setAuthed] = useState(isAdminAuthed);
   const [checking, setChecking] = useState(false);
 
-  if (!state.session.userId) {
-    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
-  }
-
   if (authed) {
     return <Outlet />;
+  }
+
+  if (state.session.userId && !authed) {
+    // Allow the admin password gate to appear even for a session-aware user.
+    // The public login page is intentionally not used for admin entry.
   }
 
   const handleSubmit = (e) => {

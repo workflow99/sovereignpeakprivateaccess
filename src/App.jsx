@@ -72,8 +72,6 @@ function App() {
             </Route>
           </Route>
 
-          <Route path="/admin" element={<Navigate to="/superadmin" replace />} />
-
           <Route path="/superadmin" element={<AdminGuard />}>
             <Route element={<AdminLayout />}>
               <Route index element={<AdminOverviewPage />} />
