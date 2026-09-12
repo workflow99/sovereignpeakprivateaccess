@@ -280,13 +280,16 @@ function LoginForm({ onSubmitted }) {
 }
 
 function SignupForm({ onSubmitted, onSwitchToLogin }) {
-  const { signUp } = useAppStore();
+  const { signUp, validateSignUp } = useAppStore();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [accessKey, setAccessKey] = useState("");
+  const [code, setCode] = useState("");
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [step, setStep] = useState("details");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -297,15 +300,101 @@ function SignupForm({ onSubmitted, onSwitchToLogin }) {
       setError("Passwords don't match.");
       return;
     }
-    setLoading(true);
-    const result = await signUp({ firstName, lastName, email, password, accessKey });
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error);
+    const validation = validateSignUp({ firstName, lastName, email, password, accessKey });
+    if (!validation.ok) {
+      setError(validation.error);
       return;
     }
-    onSubmitted();
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, purpose: "signup" }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Unable to send a verification code.");
+        return;
+      }
+      setMaskedEmail(data.maskedEmail);
+      setStep("verification");
+    } catch {
+      setError("Unable to reach the verification service.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code, purpose: "signup" }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "That code could not be verified.");
+        return;
+      }
+      const result = await signUp({ firstName, lastName, email, password, accessKey });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      onSubmitted();
+    } catch {
+      setError("Unable to reach the verification service.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === "verification") {
+    return (
+      <form onSubmit={handleVerify} className="flex flex-col gap-4">
+        <h1 className="font-serif text-2xl text-white">Verify Your Account</h1>
+        <p className="text-sm leading-relaxed text-[#B3B3B3]">
+          Verification code sent to {maskedEmail}.
+        </p>
+        <ErrorBanner message={error} />
+        <FormField
+          icon={KeyRound}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]{6}"
+          maxLength={6}
+          required
+          placeholder="Six-digit verification code"
+          autoComplete="one-time-code"
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+        />
+        <button
+          type="submit"
+          disabled={loading || code.length !== 6}
+          className="mt-1 w-full rounded-full bg-gradient-to-r from-[#B11226] to-[#D62839] py-3 text-sm font-semibold text-white transition-shadow hover:shadow-[0_0_20px_rgba(239,68,68,0.4)] disabled:opacity-60"
+        >
+          {loading ? "Creating Account…" : "Verify and Create Account"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setCode("");
+            setError("");
+            setStep("details");
+          }}
+          className="text-center text-xs font-semibold text-[#EF4444]"
+        >
+          Edit account details
+        </button>
+      </form>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">

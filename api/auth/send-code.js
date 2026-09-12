@@ -17,14 +17,14 @@ function getDb() {
   return getFirestore(app);
 }
 
-function verificationId(email) {
-  return crypto.createHash("sha256").update(email).digest("hex");
+function verificationId(email, purpose) {
+  return crypto.createHash("sha256").update(`${purpose}:${email}`).digest("hex");
 }
 
-function codeHash(email, code) {
+function codeHash(email, code, purpose) {
   return crypto
     .createHash("sha256")
-    .update(`${email}:${code}:${process.env.VERIFICATION_CODE_SECRET}`)
+    .update(`${purpose}:${email}:${code}:${process.env.VERIFICATION_CODE_SECRET}`)
     .digest("hex");
 }
 
@@ -45,6 +45,7 @@ export default async function handler(req, res) {
   }
 
   const email = String(req.body?.email ?? "").trim().toLowerCase();
+  const purpose = req.body?.purpose === "signup" ? "signup" : "login";
   if (!email || !email.includes("@")) {
     return json(res, 400, { error: "Enter a valid email address." });
   }
@@ -56,12 +57,15 @@ export default async function handler(req, res) {
   try {
     const db = getDb();
     const users = await db.collection("users").where("email", "==", email).limit(1).get();
-    if (users.empty) {
+    if (purpose === "login" && users.empty) {
       return json(res, 400, { error: "No account found with that email. Sign up first." });
+    }
+    if (purpose === "signup" && !users.empty) {
+      return json(res, 400, { error: "An account with this email already exists." });
     }
 
     const user = users.docs[0];
-    const verificationRef = db.collection("loginVerifications").doc(verificationId(email));
+    const verificationRef = db.collection("loginVerifications").doc(verificationId(email, purpose));
     const existing = await verificationRef.get();
     const existingData = existing.exists ? existing.data() : null;
     if (existingData?.sentAt && Date.now() - existingData.sentAt < RESEND_COOLDOWN_MS) {
@@ -81,8 +85,9 @@ export default async function handler(req, res) {
 
     await verificationRef.set({
       email,
-      userId: user.id,
-      codeHash: codeHash(email, code),
+      userId: user?.id ?? null,
+      purpose,
+      codeHash: codeHash(email, code, purpose),
       sentAt: Date.now(),
       expiresAt: Date.now() + CODE_TTL_MS,
       attempts: 0,

@@ -343,6 +343,21 @@ export function AppStoreProvider({ children }) {
         return { ok: true };
       },
 
+      validateSignUp: ({ firstName, lastName, email, password, accessKey }) => {
+        const trimmedEmail = email.trim().toLowerCase();
+        if (!firstName.trim() || !lastName.trim() || !trimmedEmail || !password) {
+          return { ok: false, error: "Please fill in every field." };
+        }
+        const liveKey = siteMetaRef.current?.privateAccessKey ?? DEFAULT_SITE_META.privateAccessKey;
+        if ((accessKey ?? "").trim() !== liveKey) {
+          return { ok: false, error: "That private access key isn't valid." };
+        }
+        if (usersRef.current.some((user) => user.email === trimmedEmail)) {
+          return { ok: false, error: "An account with this email already exists." };
+        }
+        return { ok: true };
+      },
+
       logIn: async ({ email, password }) => {
         const trimmedEmail = email.trim().toLowerCase();
         const user = usersRef.current.find((u) => u.email === trimmedEmail);

@@ -15,14 +15,14 @@ function getDb() {
   return getFirestore(app);
 }
 
-function verificationId(email) {
-  return crypto.createHash("sha256").update(email).digest("hex");
+function verificationId(email, purpose) {
+  return crypto.createHash("sha256").update(`${purpose}:${email}`).digest("hex");
 }
 
-function codeHash(email, code) {
+function codeHash(email, code, purpose) {
   return crypto
     .createHash("sha256")
-    .update(`${email}:${code}:${process.env.VERIFICATION_CODE_SECRET}`)
+    .update(`${purpose}:${email}:${code}:${process.env.VERIFICATION_CODE_SECRET}`)
     .digest("hex");
 }
 
@@ -38,6 +38,7 @@ export default async function handler(req, res) {
 
   const email = String(req.body?.email ?? "").trim().toLowerCase();
   const code = String(req.body?.code ?? "").trim();
+  const purpose = req.body?.purpose === "signup" ? "signup" : "login";
   if (!email || !/^\d{6}$/.test(code)) {
     return json(res, 400, { error: "Enter the six-digit verification code." });
   }
@@ -48,7 +49,7 @@ export default async function handler(req, res) {
 
   try {
     const db = getDb();
-    const verificationRef = db.collection("loginVerifications").doc(verificationId(email));
+    const verificationRef = db.collection("loginVerifications").doc(verificationId(email, purpose));
     const snapshot = await verificationRef.get();
     if (!snapshot.exists) {
       return json(res, 400, { error: "That code is invalid or has expired." });
@@ -65,7 +66,7 @@ export default async function handler(req, res) {
       return json(res, 429, { error: "Too many attempts. Request a new code." });
     }
 
-    const valid = codeHash(email, code) === verification.codeHash;
+    const valid = codeHash(email, code, purpose) === verification.codeHash;
     if (!valid) {
       const attempts = (verification.attempts ?? 0) + 1;
       if (attempts >= MAX_ATTEMPTS) await verificationRef.delete();
@@ -74,7 +75,7 @@ export default async function handler(req, res) {
     }
 
     await verificationRef.delete();
-    return json(res, 200, { ok: true, userId: verification.userId });
+    return json(res, 200, { ok: true, userId: verification.userId, purpose });
   } catch (error) {
     console.error("Unable to verify login code", error);
     return json(res, 500, { error: "Unable to verify the code right now." });
