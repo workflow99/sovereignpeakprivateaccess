@@ -29,9 +29,8 @@ function codeHash(email, code, purpose) {
 }
 
 function maskEmail(email) {
-  const [localPart, domain] = email.split("@");
-  const visible = localPart.slice(0, Math.min(2, localPart.length));
-  return `${visible}${"*".repeat(Math.max(5, localPart.length - visible.length))}@${domain}`;
+  const visiblePrefix = email.slice(0, 2);
+  return `${visiblePrefix}${"*".repeat(8)}.me`;
 }
 
 function json(res, status, body) {

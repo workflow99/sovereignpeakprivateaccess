@@ -36,9 +36,7 @@ function blankDashboard({ name = "Investor", email = "", joinDate = new Date().t
       avatarUrl: null,
     },
     balances: { cash: 0 },
-    holdings: [
-      { symbol: "WHT401k", name: "WhitehouseTesla401k", quantity: 100, avgCost: 1.0, color: colorForSymbol("WHT401k") },
-    ],
+    holdings: [],
     otherAssetsValue: 0,
     kyc: null,
     transactions: [],
