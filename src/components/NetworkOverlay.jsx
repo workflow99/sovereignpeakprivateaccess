@@ -1,8 +1,5 @@
 import { useEffect, useRef } from "react";
 
-const NODE_COUNT = 34;
-const LINK_DIST = 150;
-
 export default function NetworkOverlay({ className = "" }) {
   const canvasRef = useRef(null);
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import { AppStoreProvider } from "./store/AppStoreContext";
 import { ToastProvider } from "./components/ToastProvider";
 import ToastContainer from "./components/ToastContainer";

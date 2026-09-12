@@ -352,6 +352,12 @@ export function AppStoreProvider({ children }) {
         if (password !== user.password) {
           return { ok: false, error: "Incorrect password." };
         }
+        return { ok: true, userId: user.id };
+      },
+
+      completeLogin: (userId) => {
+        const user = usersRef.current.find((candidate) => candidate.id === userId);
+        if (!user) return { ok: false, error: "That account is no longer available." };
         saveSession(user.id);
         setSessionUserId(user.id);
         return { ok: true };

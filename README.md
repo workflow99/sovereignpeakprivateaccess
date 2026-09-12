@@ -1,5 +1,20 @@
 # React + Vite
 
+## Login Verification
+
+Account creation still uses the private access key. Investor login now requires the email and password first, followed by a new six-digit verification code after every logout.
+
+The code endpoints run as Vercel serverless functions and require these server-only environment variables in Vercel:
+
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_CLIENT_EMAIL`
+- `FIREBASE_PRIVATE_KEY` (keep the `\\n` line breaks when pasting it)
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+- `VERIFICATION_CODE_SECRET` (use a long random value)
+
+For temporary Resend test mode, optionally set `RESEND_TEST_TO_EMAIL` to the single verified test recipient. Omit it after a sending domain is verified so codes go to each user's account email.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:

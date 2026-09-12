@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 
 .env
+
+# Credentials and service-account files
+.env.*
+!.env.example
+*firebase-adminsdk*.json
+*service-account*.json
+firebase-admin*.json
